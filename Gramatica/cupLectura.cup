@@ -1,0 +1,314 @@
+package gramatica;
+
+import java_cup.runtime.*;
+import gramatica.ParserLecturaSym;
+import gramatica.LexerLectura;
+import java_cup.runtime.XMLElement;
+import clasesDAO.*;
+import java.util.ArrayList;
+import java.util.List;
+import instancias.*;
+
+class ParserLectura;
+parser code{:
+    //Listado de errores	
+	//Controlador de error sintactico
+    ArrayList<TokenError> listadoErroresSintacticos = new ArrayList();
+	
+
+	@Override
+	public void syntax_error(Symbol a){
+		Token tokenError = (Token) a.value;//lo transformamos en token para obtener su lexema, fila y columna		
+		String msgError = "Se esperaba: ";	
+		
+                
+		int linea = (tokenError != null) ? tokenError.getLinea() : 0;
+		int columna = (tokenError != null) ? tokenError.getColumna() : 0;
+		
+		if(a.sym == ParserLecturaSym.EOF){
+			System.out.println("END OF FILE");
+			TokenError tokenErrorAux = new TokenError("ERROR SINTACTICO", "Etiqueta de cierre", "La etiqueta de cierre debe ser ;", -1, -1);
+			listadoErroresSintacticos.add(tokenErrorAux);
+		}else{
+			for(int i = 0; i < expected_token_ids().size(); i++){
+				//msgError = msgError + mensajes[expected_token_ids().get(i)];
+				msgError = msgError + symbl_name_from_id(expected_token_ids().get(i)) + " ";
+
+				if(i < expected_token_ids().size() - 1)
+					msgError = msgError + ", ";			
+			}
+			//System.out.println("error de sintaxis: linea: "+tokenError.getLexema()+" "+tokenError.getLinea()+" columna: "+tokenError.getColumna()+" MENSAJE: "+msgError);
+			TokenError tokenErrorAux = new TokenError("ERROR SINTACTICO", tokenError.getLexema(), msgError, linea, columna);
+			listadoErroresSintacticos.add(tokenErrorAux);
+		}
+		
+	}
+	
+	public void report_error(String message, Object info) {
+        System.out.println("Reportar Error");
+    }
+    
+	public void report_fatal_error(String message, Object info) {
+        System.out.println("Error Fatal: " + info);
+    }
+
+    protected int error_sync_size() {
+        return 1;
+    }
+	
+	public ArrayList<TokenError> getListadoErroresSintacticos(){
+		return listadoErroresSintacticos;
+	}
+
+	public ParserLectura(LexerLectura lex){
+        super(lex);
+    }
+:}
+
+//SIMBOLOS
+terminal Token PAREN_INI;
+terminal Token PAREN_FIN;
+terminal Token PUNTO_COMA;
+terminal Token COMA;
+//NODOS
+terminal Token USUARIO;
+terminal Token EDIFICIO;
+terminal Token SALON;
+terminal Token CURSO;
+terminal Token ESTUDIANTE;
+terminal Token CATEDRATICO;
+terminal Token HORARIO;
+terminal Token ASIGNAR;
+//TIPO USUARIO
+terminal Token COLABORADOR;
+
+//DATOS
+terminal Token ALFANUM;
+terminal Token NUMERO;
+
+//NO TERMINALES
+non terminal s;
+
+non terminal carga_estructura_general;
+
+non terminal carga_usuario;
+non terminal carga_edificio;
+non terminal carga_salon;
+non terminal carga_curso;
+non terminal carga_estudiante;
+non terminal carga_catedratico;
+non terminal carga_horario;
+non terminal carga_asignar;
+//PARAMETROS
+non terminal String parametro_alfanum;
+non terminal String parametro_numero;
+
+non terminal String parametro_nombre;
+non terminal String parametro_password;
+non terminal String parametro_tipo;
+
+//PRODUCCIONES INICIO
+start with s;
+
+s ::= s carga_estructura_general
+    | /* empty */     
+    ;
+
+carga_estructura_general ::= 
+      carga_usuario
+    | carga_edificio 
+    | carga_salon
+    | carga_curso
+    | carga_estudiante
+    | carga_catedratico
+    | carga_horario
+    | carga_asignar
+    ;
+
+//////////////////////////CARGAS ENTIDADES
+
+carga_usuario ::=   USUARIO PAREN_INI:inicio 
+                        parametro_numero:id         COMA   //ID
+                        parametro_nombre:name       COMA   //nombre
+                        parametro_password:password COMA   //password
+                        parametro_tipo:tipo                //tipo
+                    PAREN_FIN PUNTO_COMA
+                    {:
+                        Usuario usuarioAux = new Usuario(id, name, password, tipo);
+                        instancias.InstanciaEstructuraUsuarios.agregarUsuario(usuarioAux);                        
+                        
+                        if(instancias.InstanciaEstructuraUsuarios.buscarUsuario(id) == null){ 
+                            String mensaje = "Error al crear el usuario <id: " + id + "> <nombre: " + name + ">";
+                            TokenError tokenErrorAux = new TokenError("ERROR SEMANTICO", "Usuario", mensaje, inicio.getLinea(), inicio.getColumna());
+			                listadoErroresSintacticos.add(tokenErrorAux);
+                        }
+                    
+                    :}
+    ;
+
+carga_edificio ::=  EDIFICIO PAREN_INI:inicio 
+                        parametro_nombre:name         //nombre
+                    PAREN_FIN PUNTO_COMA
+                    {:
+                        Edificio edificioAux = new Edificio(name);
+                        instancias.InstanciaEstructuraEdificios.agregarEdificio(edificioAux);
+                                
+                        if(instancias.InstanciaEstructuraEdificios.buscarEdificio(name) == null){           
+                            String mensaje = "Error al crear el edificio <nombre: " + name + ">";
+                            TokenError tokenErrorAux = new TokenError("ERROR SEMANTICO", "Edificio", mensaje, inicio.getLinea(), inicio.getColumna());
+			                listadoErroresSintacticos.add(tokenErrorAux);
+                        }else{
+                            System.out.println("Edificio ingresado ");
+                        }
+                    :}
+    ;
+
+carga_salon ::=     SALON PAREN_INI:inicio
+                        parametro_nombre:nameEdificio COMA    //nombre edificio
+                        parametro_numero:numeroSalon COMA     //numero salon
+                        parametro_numero:capacidad            //capacidad
+                    PAREN_FIN PUNTO_COMA
+                    {:
+                        Salon salonAux = new Salon(nameEdificio, numeroSalon, capacidad);
+                        String mensaje = "";
+                        Edificio edificioAux = instancias.InstanciaEstructuraEdificios.buscarEdificio(nameEdificio);
+                        if(edificioAux != null){
+                            edificioAux.getListadoSalones().insertarNodo(salonAux, String.valueOf(salonAux.getNumero()));                    
+                            if(edificioAux.getListadoSalones().buscarNodo(String.valueOf(salonAux.getNumero())) != null){//fue ingresado           
+                                System.out.println("Salon ingresado: ");
+                                mensaje = "";
+                            }else{
+                                mensaje = "Error al crear el salon "+numeroSalon;
+                            }
+                        }else{
+                            mensaje = "El edificio con nombre "+ numeroSalon + " no existe";
+                        }
+                    
+                        if(mensaje.equals("") == false){//hay error
+                            TokenError tokenErrorAux = new TokenError("ERROR SEMANTICO", "Salon", mensaje, inicio.getLinea(), inicio.getColumna());
+			                listadoErroresSintacticos.add(tokenErrorAux);
+
+                        }
+                    :}
+    ;
+
+carga_curso ::=     CURSO PAREN_INI 
+                        parametro_numero COMA    //codigo
+                        parametro_nombre COMA    //nombre 
+                        parametro_numero COMA    //semestre
+                        parametro_numero         //creditos
+                    PAREN_FIN PUNTO_COMA
+    ;
+
+carga_estudiante ::= ESTUDIANTE PAREN_INI 
+                        parametro_nombre COMA    //carnet
+                        parametro_numero COMA    //nombre
+                        parametro_numero         //direccion
+                     PAREN_FIN PUNTO_COMA
+    ;
+
+carga_catedratico ::= CATEDRATICO PAREN_INI:inicio    
+                        parametro_numero:id         COMA    //identificador
+                        parametro_nombre:name       COMA    //nombre
+                        parametro_alfanum:direccion         //direccion
+                      PAREN_FIN PUNTO_COMA
+                    {:
+                        Catedratico catedratico = new Catedratico(id, name, direccion);
+                        instancias.InstanciaEstructuraCatedraticos.agregarCatedratico(catedratico);
+                        
+                        if(instancias.InstanciaEstructuraCatedraticos.buscarCatedratico(id) == null){                
+                            String mensaje = "Error al crear el catedratico <id: " + id + "> <nombre: " + name + ">";
+                            TokenError tokenErrorAux = new TokenError("ERROR SEMANTICO", "Catedratico", mensaje, inicio.getLinea(), inicio.getColumna());
+			                listadoErroresSintacticos.add(tokenErrorAux);
+                        }else{
+                            System.out.println("CATEDRATICO INGRESADO: ");
+                        }
+                     
+                    :}
+    ;
+
+carga_horario ::=   HORARIO PAREN_INI 
+                        parametro_numero COMA     //codigo horario
+                        parametro_alfanum COMA     //período 
+                        parametro_numero COMA     //día  ?????
+                        parametro_numero COMA     //codCurso
+                        parametro_numero COMA     //codSalón
+                        parametro_numero COMA     //codEdificio
+                        parametro_numero         //numIdentificacion
+                    PAREN_FIN PUNTO_COMA 
+    ;
+
+carga_asignar ::=   HORARIO PAREN_INI 
+                        parametro_numero COMA     //carnet estudiante
+                        parametro_numero COMA     //codigo horario
+                        parametro_numero COMA     //zona
+                        parametro_numero          //final
+                    PAREN_FIN PUNTO_COMA 
+    ;
+
+//////////////////////////PARAMETROS
+parametro_nombre ::= parametro_alfanum:a {: RESULT = a; :}
+    ;
+
+parametro_password ::= parametro_alfanum:a {: RESULT = a; :}
+    ;
+
+parametro_tipo ::= COLABORADOR:a {: RESULT = a.getLexema(); :}
+    | ESTUDIANTE:a {: RESULT = a.getLexema(); :}
+    ;
+
+parametro_alfanum ::= ALFANUM:a {: RESULT = a.getLexema(); :}
+    | COLABORADOR:a {: RESULT = a.getLexema(); :}
+    | ESTUDIANTE:a {: RESULT = a.getLexema(); :}
+    ;
+
+parametro_numero ::= NUMERO:a {: RESULT = a.getLexema(); :}
+    ;
+/*
+
+//////////////////////////////////////////////////////////////
+Usuario(id, nombre, contraseña, tipo);
+ID = numerico
+nombre = alfanumérico
+contraseña = alfanumérico
+tipo = alfanumérico (super, colaborador, estudiante)
+
+Edificio(nombre);
+nombre = alfanumérico
+
+Salón(nombre, número, capacidad);
+nombre = alfanumérico, donde nombre es el nombre del edificio al que se asigna el salón
+número = numérico
+capacidad = numérico
+
+Curso(código, nombre, semestre, créditos);
+código = numérico
+nombre = alfanumérico
+semestre = número
+créditos = número
+
+Estudiante(carnet, nombre, dirección);
+carnet = numérico
+nombre = alfanumérico
+dirección = alfanumérico
+
+Catedrático(identificador, nombre, dirección);
+identificador = numérico
+nombre = alfanumérico
+dirección = alfanumérico
+
+Horario(código, período, día, codCurso, codSalón, codEdificio, numIdentificacion);
+código = numérico
+codSalon = numérico
+codCurso = numérico
+codEdificio = numérico
+numIdentificacion = numérico
+período = alfanumérico, es un rango de horas día = alfanumérico
+
+Asignar(carnet, codHorario, zona, final);
+carnet = numérico
+codHorario = numérico
+zona = numérico
+final = numérico
+
+*/

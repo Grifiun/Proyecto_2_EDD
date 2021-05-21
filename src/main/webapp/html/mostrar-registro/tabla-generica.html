@@ -1,0 +1,51 @@
+<table class="table">
+  <thead class="thead-dark">
+    <tr>
+      <th scope="col">#</th>
+        <%
+                for(int i = 0; i < titulo.size(); i++){
+        %>            
+        <th scope="row"><%=titulo.get(i)%></th>
+        <%
+            }
+        %>
+    </tr>
+  </thead>
+  <tbody>
+      
+      
+      <%
+        if(lista != null && lista.size() > 0){
+            for(int i = 0; i < lista.size(); i++){
+      %>
+        <tr>
+            <th scope="row"><%=i + 1%></th>
+        <%
+                for(int j = 0; j < lista.get(0).size(); j++){
+        %>
+                <td><%=lista.get(i).get(j)%></td>
+            <%
+                }                
+            %>
+                <td>                    
+                    <% 
+                        session.setAttribute("listado"+i, lista.get(i).get(0));
+                    %>
+                    
+                    <%
+                        if(tipoListado.equals("edificios") == true){
+                    %>
+                            <a href="visualizar-listado.jsp?tipoListado=salones&index_edificio=<%=i%>" class="btn btn-success">Salones</a>
+                    <%
+                        }
+                    %>
+                    
+                    <a href="../ControladorEliminar?index=<%=i%>&tipo=<%=tipoListado%>" class="btn btn-success">Eliminar</a>
+                </td>
+        </tr>
+      <%
+            }
+        }      
+      %>
+  </tbody>
+</table>

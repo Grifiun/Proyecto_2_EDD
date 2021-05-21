@@ -1,0 +1,40 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+          <a class="nav-link" href="home.jsp"> COLABORADOR <span class="sr-only">(current)</span></a>
+      </li>          
+      
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="captcha" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          LISTADOS
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="visualizar-listado.jsp?tipoListado=usuario">Ver listado usuario</a>
+          <a class="dropdown-item" href="visualizar-listado.jsp?tipoListado=catedraticos">Ver listado catedratico</a>
+          <a class="dropdown-item" href="#">Ver listado estudiante</a>
+          <a class="dropdown-item" href="#">Ver listado curso</a>
+          <a class="dropdown-item" href="visualizar-listado.jsp?tipoListado=edificios">Ver listado edificio</a>
+          <a class="dropdown-item" href="#">Ver listado salon</a> 
+        </div>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="ingreso" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          INGRESO
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="ingresar-entidad.jsp?tipoEntidad=usuario">Agregar usuario</a>
+          <a class="dropdown-item" href="ingresar-entidad.jsp?tipoEntidad=catedratico">Agregar catedratico</a>
+          <a class="dropdown-item" href="ingresar-entidad.jsp?tipoEntidad=estudiante">Agregar estudiante</a>
+          <a class="dropdown-item" href="ingresar-entidad.jsp?tipoEntidad=curso">Agregar curso</a>
+          <a class="dropdown-item" href="ingresar-entidad.jsp?tipoEntidad=edificio">Agregar edificio</a>
+          <a class="dropdown-item" href="ingresar-entidad.jsp?tipoEntidad=salon">Agregar salon</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+</nav>
