@@ -35,6 +35,7 @@ public class InstanciaEstructuraCatedraticos {
     
    
     public static List<ArrayList<String>> getInfo(){
+        revisar();
         List<ArrayList<String>> datosAuxiliar = new ArrayList();
         Nodo aux = arbolCatedraticos.getRaiz();
         datosAuxiliar = inOrden(arbolCatedraticos.getRaiz(), datosAuxiliar);
