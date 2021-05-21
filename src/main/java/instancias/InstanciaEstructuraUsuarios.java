@@ -35,6 +35,7 @@ public class InstanciaEstructuraUsuarios {
     }
     
     public static List<ArrayList<String>> getInfo(){
+        revisar();
         List<ArrayList<String>> datosAuxiliar = new ArrayList();
         
         NodoDobleEnlace aux = listadoUsuarios.getRaiz();
